@@ -58,6 +58,19 @@ class LoginScreen extends StatelessWidget {
                     }
                   },
                 ),
+                
+                // Add this section for direct testing
+                SizedBox(height: 20),
+                TextButton.icon(
+                  icon: Icon(Icons.bug_report, color: Colors.white),
+                  label: Text(
+                    'Test Direct Connection',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/direct_test');
+                  },
+                ),
               ],
             ),
           ),
