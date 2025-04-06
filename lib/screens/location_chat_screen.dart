@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/message_bubble.dart';
+import '../services/tts_service.dart'; // Import the TTS service
 
 class LocationChatScreen extends StatefulWidget {
   @override
@@ -10,10 +11,14 @@ class _LocationChatScreenState extends State<LocationChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   bool _isTyping = false;
+  final TtsService _ttsService = TtsService(); // Initialize TTS service
 
   @override
   void initState() {
     super.initState();
+    // Initialize TTS
+    _ttsService.initialize();
+    
     // Add initial welcome message
     _addMessage(
       'Welcome to the chat! How can I help you today?',
@@ -32,6 +37,11 @@ class _LocationChatScreenState extends State<LocationChatScreen> {
         'time': time,
       });
     });
+    
+    // Read assistant messages aloud
+    if (!isMe) {
+      _ttsService.speak(text);
+    }
   }
 
   void _handleSendMessage() {
@@ -63,7 +73,7 @@ class _LocationChatScreenState extends State<LocationChatScreen> {
           messageText.toLowerCase().contains('where') && 
           messageText.toLowerCase().contains('eat')) {
         _addMessage(
-          "Yes, you are locating at 'Център за върхови постижения \"Мехатроника и чисти технологии\" - кампус Студентски град'. The closest shop is 'Скарата' near 'Technical University - Block 2'.",
+          "Yes, you are locating at 'Technical University Block 7'. The closest shop is 'Skarata' near 'Technical University - Block 2'.",
           false,
           'Assistant',
           DateTime.now(),
@@ -83,6 +93,35 @@ class _LocationChatScreenState extends State<LocationChatScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // App bar with TTS toggle
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: Colors.grey[200],
+          child: Row(
+            children: [
+              Text(
+                "Voice Feedback", 
+                style: TextStyle(fontWeight: FontWeight.bold)
+              ),
+              Switch(
+                value: _ttsService.isEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _ttsService.toggleTts();
+                  });
+                },
+              ),
+              if (_ttsService.isSpeaking)
+                IconButton(
+                  icon: Icon(Icons.stop_circle),
+                  onPressed: () {
+                    _ttsService.stop();
+                    setState(() {});
+                  },
+                ),
+            ],
+          ),
+        ),
         Expanded(
           child: ListView.builder(
             padding: EdgeInsets.all(8),
@@ -152,5 +191,13 @@ class _LocationChatScreenState extends State<LocationChatScreen> {
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    // Stop any ongoing speech when disposing
+    _ttsService.stop();
+    _messageController.dispose();
+    super.dispose();
   }
 }
